@@ -11,16 +11,15 @@ import com.example.producto.repository.ProductRepository;
 @Service 
 public class ProductService {
     private ProductRepository repo;
-
     public ProductService(ProductRepository repo){
         this.repo = repo;
     }
 
     public List<Product> getAll(){
         return repo.findAll();
-    }    
+    }
 
-    public Optional<Product> findbyId(Long id){
+    public Optional<Product> findById(Long id){
         return repo.findById(id);
     }
 
@@ -33,17 +32,15 @@ public class ProductService {
         if(optional.isEmpty()){
             return optional.empty();
         }
-        Product productdb = optional.get();
-
-        productdb.setName(product.getName());
-        productdb.setPrice(product.getPrice());
-        productdb.setStock(product.getStock());
-
-        return Optional.of(repo.save(productdb));
+        Product productDB = optional.get();
+        productDB.setName(product.getName());
+        productDB.setPrice(product.getPrice());
+        productDB.setStock(product.getStock());
+        return Optional.of(repo.save(productDB));
     }
 
-    public boolean delete(Long id){
-        if(repo.existsById(id)){
+    public boolean delete(long id){
+        if(!repo.existsById(id)){
             return false;
         }
         repo.deleteById(id);
