@@ -1,6 +1,7 @@
 package com.example.producto.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
@@ -8,9 +9,14 @@ public record ProductRequest(
         @NotBlank(message = "Name is mandatory")
         String name,
         @Positive
+        @NotNull
         Double price,
         @PositiveOrZero
-        Integer stock
+        @NotNull 
+        Integer stock,
+        @NotNull 
+        Long categoryId
+        
 ) {
 
 

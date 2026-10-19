@@ -5,14 +5,20 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.example.producto.exception.ResourceNotFoundException;
+import com.example.producto.model.Category;
 import com.example.producto.model.Product;
+import com.example.producto.repository.CategoryRepository;
 import com.example.producto.repository.ProductRepository;
 
 @Service 
 public class ProductService {
-    private ProductRepository repo;
-    public ProductService(ProductRepository repo){
+    private final ProductRepository repo;
+    private final CategoryRepository repoCategory;
+
+    public ProductService(ProductRepository repo, CategoryRepository repoCategory) {
         this.repo = repo;
+        this.repoCategory = repoCategory;
     }
 
     public List<Product> getAll(){
@@ -23,19 +29,29 @@ public class ProductService {
         return repo.findById(id);
     }
 
-    public Product save(Product product){
+    public Product save(Product product, Long categoryId){
+        Category category = repoCategory.findById(categoryId).orElseThrow(
+            () -> new RuntimeException("Category not found with id: " + categoryId)
+        );
+        product.setCategory(category);
         return repo.save(product);
     }
 
-    public Optional<Product> update(long id, Product product){
-        Optional<Product> optional = repo.findById(id);
-        if(optional.isEmpty()){
-            return optional.empty();
-        }
-        Product productDB = optional.get();
-        productDB.setName(product.getName());
-        productDB.setPrice(product.getPrice());
-        productDB.setStock(product.getStock());
+    public Optional<Product> update(Long id, Product newProduct, Long categoryId){
+
+        Product productDB = repo.findById(id).orElseThrow(
+            () -> new ResourceNotFoundException("Product not found with id" + id)
+        );
+
+        Category category = repoCategory.findById(categoryId).orElseThrow(
+            () -> new ResourceNotFoundException("Category not found with id: " + categoryId)
+        );
+        //Product productDB = optional.get();
+
+        productDB.setName(newProduct.getName());
+        productDB.setPrice(newProduct.getPrice());
+        productDB.setStock(newProduct.getStock());
+        productDB.setCategory(category);
         return Optional.of(repo.save(productDB));
     }
 

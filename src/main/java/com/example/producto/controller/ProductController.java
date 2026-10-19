@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/product")
 public class ProductController {
 
-    private ProductService service;
+    private final ProductService service;
 
     public ProductController(ProductService service) {
         this.service = service;
@@ -52,12 +52,8 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ProductResponse> save(@Valid @RequestBody ProductRequest product){
-        if (product.name().isEmpty()){
-             ResponseEntity.badRequest().body("no puede ser asi");
-        }
-        Product productSaved=service.save(toEntity(product));
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(productSaved));
-
+        Product newProduct=service.save(toEntity(product), product.categoryId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(newProduct));
     }
 
     @DeleteMapping("/{id}")
@@ -70,17 +66,17 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductResponse> update(@Valid @PathVariable Long id,@Valid @RequestBody ProductRequest product){
-        Optional<Product> optional = service.update(id,toEntity(product));
-        if(optional.isPresent()){
-            return ResponseEntity.status(HttpStatus.CREATED).body(toResponse( optional.get()));
+    public ResponseEntity<ProductResponse> update(@PathVariable Long id,@Valid @RequestBody ProductRequest productUpdate){
+        Optional<Product> product = service.update(id,toEntity(productUpdate), productUpdate.categoryId());
+        if(product.isPresent()){
+            return ResponseEntity.ok(toResponse(product.get()));
         }
         return ResponseEntity.notFound().build();
 
     }
 
     private ProductResponse toResponse(Product product){
-        return new ProductResponse(product.getId(),product.getName(),product.getPrice(),product.getStock());
+        return new ProductResponse(product.getId(),product.getName(),product.getPrice(),product.getStock(), product.getCategory().getId(), product.getCategory().getName());
     }
 
     private Product toEntity(ProductRequest request){

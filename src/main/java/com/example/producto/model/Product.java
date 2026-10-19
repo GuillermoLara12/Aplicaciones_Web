@@ -1,15 +1,15 @@
 package com.example.producto.model;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
 
 @Entity
-
+@Table(name = "products")
 public class Product {
 
     @Id
@@ -20,15 +20,20 @@ public class Product {
     private Double price;
     private Integer stock;
 
+    @ManyToOne
+    @JoinColumn (name = "category_id")
+    private Category category;
+
     // Constructor vacío que necesita Hibernate
     public Product() {
     }
 
     // Constructor con datos
-    public Product(String name, Double price, Integer stock) {
+    public Product(String name, Double price, Integer stock, Category category) {
         this.name = name;
         this.price = price;
         this.stock = stock;
+        this.category = category;
     }
 
     public Long getId() {
@@ -61,6 +66,14 @@ public class Product {
 
     public void setStock(Integer stock) {
         this.stock = stock;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
 }

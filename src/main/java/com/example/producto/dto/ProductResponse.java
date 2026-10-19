@@ -11,6 +11,8 @@ public record ProductResponse(
         @Positive
         Double price,
         @PositiveOrZero
-        int stock
+        int stock,
+        Long categoryId,
+        String categoryName
 ) {
 }
