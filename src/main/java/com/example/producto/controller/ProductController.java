@@ -2,12 +2,12 @@ package com.example.producto.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.producto.dto.ProductRequest;
 import com.example.producto.dto.ProductResponse;
+import com.example.producto.dto.StockRequest;
+import com.example.producto.exception.ResourceNotFoundException;
 import com.example.producto.model.Product;
 import com.example.producto.service.ProductService;
 
@@ -41,13 +43,10 @@ public class ProductController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getById(@PathVariable Long id){
-        Optional<Product> product = service.findById(id); //product ees una entity y en este punto no es igual al ProductResponse
-        if(product.isPresent()){
-            return ResponseEntity.ok(toResponse(product.get()));
-        }else{
-            return ResponseEntity.notFound().build();
-        }
-
+        Product product = service.findById(id).orElseThrow(
+            () -> new ResourceNotFoundException("Product not found with id:" + id)
+        );
+        return ResponseEntity.ok(toResponse(product));
     }
 
     @PostMapping
@@ -67,12 +66,14 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(@PathVariable Long id,@Valid @RequestBody ProductRequest productUpdate){
-        Optional<Product> product = service.update(id,toEntity(productUpdate), productUpdate.categoryId());
-        if(product.isPresent()){
-            return ResponseEntity.ok(toResponse(product.get()));
-        }
-        return ResponseEntity.notFound().build();
+        Product product = service.update(id,toEntity(productUpdate), productUpdate.categoryId());
+        return ResponseEntity.ok(toResponse(product));
+    }
 
+    @PatchMapping("/{id}/stock")
+    public ResponseEntity<ProductResponse> updateStock(@PathVariable Long id,@Valid @RequestBody StockRequest request) {
+        Product product = service.updateStock(id, request.cantidad(), request.palabraClave());
+        return ResponseEntity.ok(toResponse(product));
     }
 
     private ProductResponse toResponse(Product product){

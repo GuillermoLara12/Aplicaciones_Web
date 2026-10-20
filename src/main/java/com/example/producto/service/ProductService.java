@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.example.producto.exception.InsufficientStockException;
 import com.example.producto.exception.ResourceNotFoundException;
 import com.example.producto.model.Category;
 import com.example.producto.model.Product;
@@ -37,7 +38,7 @@ public class ProductService {
         return repo.save(product);
     }
 
-    public Optional<Product> update(Long id, Product newProduct, Long categoryId){
+    public Product update(Long id, Product newProduct, Long categoryId){
 
         Product productDB = repo.findById(id).orElseThrow(
             () -> new ResourceNotFoundException("Product not found with id" + id)
@@ -46,15 +47,49 @@ public class ProductService {
         Category category = repoCategory.findById(categoryId).orElseThrow(
             () -> new ResourceNotFoundException("Category not found with id: " + categoryId)
         );
-        //Product productDB = optional.get();
 
         productDB.setName(newProduct.getName());
         productDB.setPrice(newProduct.getPrice());
         productDB.setStock(newProduct.getStock());
         productDB.setCategory(category);
-        return Optional.of(repo.save(productDB));
+        return repo.save(productDB);
     }
 
+    public Product updateStock(Long id, Integer cantidad, String palabraClave){
+        Product productDB = repo.findById(id).orElseThrow(
+            () -> new ResourceNotFoundException("Product not found with id" + id)
+        );
+        String accion = palabraClave.trim().toLowerCase();
+    int stockActual = productDB.getStock();
+
+    if (cantidad == null || cantidad <= 0) {
+        throw new IllegalArgumentException(
+            "La cantidad debe ser mayor que cero"
+        );
+    }
+
+    switch (accion) {
+        case "agregar":
+            productDB.setStock(stockActual + cantidad);
+            break;
+
+        case "remover":
+            if (stockActual < cantidad) {
+                throw new InsufficientStockException(
+                    "Stock insuficiente. Stock disponible: " + stockActual
+                );
+            }
+            productDB.setStock(stockActual - cantidad);
+            break;
+
+        default:
+            throw new IllegalArgumentException(
+                "La palabra clave debe ser 'agregar' o 'remover'"
+            );
+    }
+    
+        return repo.save(productDB);
+    }
     public boolean delete(long id){
         if(!repo.existsById(id)){
             return false;
